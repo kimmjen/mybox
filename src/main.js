@@ -5,6 +5,7 @@ const { listen } = window.__TAURI__.event;
 
 const linkInput        = document.getElementById('link-input');
 const passwordInput    = document.getElementById('password-input');
+const filenameInput    = document.getElementById('filename-input');
 const passwordToggle   = document.getElementById('password-toggle');
 const extractButton    = document.getElementById('extract-button');
 const progressArea     = document.getElementById('progress-area');
@@ -202,12 +203,13 @@ function resetProgress() {
 }
 
 function setInputsDisabled(disabled) {
-  linkInput.disabled    = disabled;
+  linkInput.disabled     = disabled;
   passwordInput.disabled = disabled;
+  filenameInput.disabled = disabled;
   extractButton.disabled = disabled;
 }
 
-async function runExtraction(url, password) {
+async function runExtraction(url, password, customFilename = '') {
   setInputsDisabled(true);
   progressArea.style.display = 'block';
   resetProgress();
@@ -254,7 +256,7 @@ async function runExtraction(url, password) {
 
   try {
     logTo(terminalConsole, 'info', 'Rust 백엔드로 추출 작업을 요청합니다...');
-    const result = await invoke('start_extraction', { url, password });
+    const result = await invoke('start_extraction', { url, password, customFilename });
     logTo(terminalConsole, 'success', `백엔드 작업 시작: ${result}`);
   } catch (err) {
     logTo(terminalConsole, 'error', `백엔드 작업 오류: ${err}`);
@@ -288,7 +290,8 @@ extractButton.addEventListener('click', async () => {
   if (!url)      { alert('공유 링크를 입력해 주세요!'); return; }
   if (!password) { alert('비밀번호를 입력해 주세요!');  return; }
 
-  pendingExtraction = { url, password };
+  const customFilename = filenameInput.value.trim().replace(/\.pdf$/i, '');
+  pendingExtraction = { url, password, customFilename };
   depModal.classList.add('visible');
   await checkDeps();
 });
@@ -308,9 +311,9 @@ depInstallBtn.addEventListener('click', startDepInstall);
 depProceedBtn.addEventListener('click', () => {
   closeModal();
   if (pendingExtraction) {
-    const { url, password } = pendingExtraction;
+    const { url, password, customFilename } = pendingExtraction;
     pendingExtraction = null;
-    runExtraction(url, password);
+    runExtraction(url, password, customFilename);
   }
 });
 

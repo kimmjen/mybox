@@ -151,6 +151,14 @@ fn pillow_installed(python: &str) -> bool {
         .unwrap_or(false)
 }
 
+fn sanitize_filename(name: &str) -> String {
+    let s: String = name.chars()
+        .filter(|c| !matches!(c, '<' | '>' | ':' | '"' | '/' | '\\' | '|' | '?' | '*'))
+        .collect();
+    let s = s.trim().to_string();
+    if s.is_empty() { "mybox_document".to_string() } else { s }
+}
+
 // ── Shell config ─────────────────────────────────────────────────────────────
 
 fn zshrc_path() -> Option<PathBuf> {
@@ -486,7 +494,7 @@ fn install_dependencies(app_handle: tauri::AppHandle) -> Result<String, String> 
 }
 
 #[tauri::command]
-fn start_extraction(app_handle: tauri::AppHandle, url: String, password: String) -> Result<String, String> {
+fn start_extraction(app_handle: tauri::AppHandle, url: String, password: String, custom_filename: String) -> Result<String, String> {
     let downloads_dir = match app_handle.path().download_dir() {
         Ok(dir) => dir,
         Err(_) => return Err("Could not resolve system Downloads directory".into()),
@@ -591,10 +599,11 @@ fn start_extraction(app_handle: tauri::AppHandle, url: String, password: String)
 
         emit_status("compiling", "PDF 병합 엔진 (Python/Pillow) 가동 중...", None, None);
 
+        let compile_title = if custom_filename.is_empty() { doc_title.clone() } else { custom_filename.clone() };
         let compile_cmd = Command::new(&python_bin)
             .arg(&compile_script_str)
             .arg(&downloads_path)
-            .arg(&doc_title)
+            .arg(&compile_title)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn();
@@ -628,8 +637,12 @@ fn start_extraction(app_handle: tauri::AppHandle, url: String, password: String)
         };
 
         if compile_status.success() {
-            let safe_title = if doc_title.is_empty() { "mybox_document".to_string() } else { doc_title.clone() };
-            let output_path = PathBuf::from(&downloads_path).join(format!("{}.pdf", safe_title));
+            let final_name = [&custom_filename, &doc_title]
+                .iter()
+                .find(|s| !s.is_empty())
+                .map(|s| sanitize_filename(s))
+                .unwrap_or_else(|| "mybox_document".to_string());
+            let output_path = PathBuf::from(&downloads_path).join(format!("{}.pdf", final_name));
             let output_path_str = output_path.to_string_lossy().into_owned();
             let _ = Command::new("open").arg(&output_path_str).spawn();
             emit_status("success", &output_path_str, None, None);
