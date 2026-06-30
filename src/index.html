@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NAVER MYBOX Document Extractor</title>
+  </head>
+
+  <body>
+    <main class="container">
+      <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #60a5fa;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        NAVER MYBOX Extractor
+      </h1>
+      <div class="subtitle">다운로드가 막힌 네이버 MYBOX 공유 문서 추출기</div>
+
+      <div class="form-group">
+        <label for="link-input">네이버 MYBOX 공유 링크</label>
+        <input type="text" id="link-input" placeholder="https://naver.me/..." required />
+        <div class="info-text">naver.me 또는 mybox.naver.com 주소를 입력하세요.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="password-input">공유 비밀번호</label>
+        <div class="input-password-wrapper">
+          <input type="password" id="password-input" placeholder="비밀번호 입력..." required style="padding-right: 3rem;" />
+          <button type="button" id="password-toggle">표시</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>저장 폴더</label>
+        <input type="text" id="folder-display" value="시스템 다운로드 폴더 (Downloads)" readonly style="opacity: 0.8; cursor: not-allowed;" />
+      </div>
+
+      <!-- Dependency Status Bar -->
+      <div id="dep-status-bar" class="dep-status-bar">
+        <div class="dep-status-item" data-dep="brew">
+          <span class="dot checking"></span>
+          <span class="dot-label">Homebrew</span>
+        </div>
+        <div class="dep-status-sep">›</div>
+        <div class="dep-status-item" data-dep="nvm">
+          <span class="dot checking"></span>
+          <span class="dot-label">nvm</span>
+        </div>
+        <div class="dep-status-sep">›</div>
+        <div class="dep-status-item" data-dep="node">
+          <span class="dot checking"></span>
+          <span class="dot-label">Node.js ≥18</span>
+        </div>
+        <div class="dep-status-sep">›</div>
+        <div class="dep-status-item" data-dep="playwright">
+          <span class="dot checking"></span>
+          <span class="dot-label">Playwright</span>
+        </div>
+        <div class="dep-status-sep">›</div>
+        <div class="dep-status-item" data-dep="pyenv">
+          <span class="dot checking"></span>
+          <span class="dot-label">pyenv</span>
+        </div>
+        <div class="dep-status-sep">›</div>
+        <div class="dep-status-item" data-dep="python">
+          <span class="dot checking"></span>
+          <span class="dot-label">Python ≥3.8</span>
+        </div>
+        <div class="dep-status-sep">›</div>
+        <div class="dep-status-item" data-dep="pillow">
+          <span class="dot checking"></span>
+          <span class="dot-label">Pillow</span>
+        </div>
+      </div>
+
+      <button id="extract-button" class="btn-primary">PDF 문서 추출 시작</button>
+
+      <!-- Progress Section -->
+      <div id="progress-area" class="progress-container">
+        <div class="progress-header">
+          <span id="progress-title" class="progress-title">준비 중...</span>
+          <span id="progress-percent" class="progress-percent">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progress-bar-fill" class="progress-bar"></div>
+        </div>
+        <div id="progress-status" class="progress-status">추출 작업을 시작합니다.</div>
+
+        <button id="open-pdf-button" class="btn-primary" style="display: none; margin-top: 1rem; margin-bottom: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">생성된 PDF 파일 열기</button>
+
+        <div id="terminal-console" class="terminal">
+          <div class="terminal-line info">대기 중...</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Dependency Modal -->
+    <div id="dep-modal" class="modal-overlay">
+      <div class="modal-card">
+        <h2 class="modal-title">필수 소프트웨어 확인</h2>
+        <p class="modal-subtitle-text">추출에 필요한 소프트웨어를 확인하고 자동으로 설치합니다.</p>
+
+        <div id="dep-checking" class="dep-checking">
+          <div class="spinner"></div>
+          <span>의존성 확인 중...</span>
+        </div>
+
+        <div id="dep-list" class="dep-list"></div>
+
+        <div id="dep-needs-interaction" class="dep-warning">
+          <strong>Homebrew 설치 필요</strong><br>
+          Terminal 창이 열렸습니다. 설치를 완료한 후 <strong>[다시 확인]</strong>을 눌러주세요.
+        </div>
+
+        <div id="dep-install-terminal" class="terminal" style="margin-top: 1rem;"></div>
+
+        <div class="modal-actions">
+          <button id="dep-cancel-btn" class="btn-secondary">취소</button>
+          <button id="dep-recheck-btn" class="btn-secondary">다시 확인</button>
+          <button id="dep-install-btn" class="btn-primary">설치하기</button>
+          <button id="dep-proceed-btn" class="btn-primary btn-green">추출 시작</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/main.js" defer></script>
+  </body>
+</html>
