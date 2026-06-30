@@ -663,6 +663,41 @@ fn open_file(path: String) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_keeps_normal_name() {
+        assert_eq!(sanitize_filename("TEST"), "TEST");
+    }
+
+    #[test]
+    fn sanitize_keeps_korean() {
+        assert_eq!(sanitize_filename("내 문서"), "내 문서");
+    }
+
+    #[test]
+    fn sanitize_strips_special_chars() {
+        assert_eq!(sanitize_filename("TEST<>:/\\|?*"), "TEST");
+    }
+
+    #[test]
+    fn sanitize_empty_returns_fallback() {
+        assert_eq!(sanitize_filename(""), "mybox_document");
+    }
+
+    #[test]
+    fn sanitize_whitespace_only_returns_fallback() {
+        assert_eq!(sanitize_filename("   "), "mybox_document");
+    }
+
+    #[test]
+    fn sanitize_trims_whitespace() {
+        assert_eq!(sanitize_filename("  hello  "), "hello");
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
