@@ -123,9 +123,9 @@ async function checkDeps() {
     if (missing.length === 0) {
       closeModal();
       if (pendingExtraction) {
-        const { url, password } = pendingExtraction;
+        const { url, password, customFilename } = pendingExtraction;
         pendingExtraction = null;
-        runExtraction(url, password);
+        runExtraction(url, password, customFilename);
       }
       return;
     }
@@ -256,7 +256,7 @@ async function runExtraction(url, password, customFilename = '') {
 
   try {
     logTo(terminalConsole, 'info', 'Rust 백엔드로 추출 작업을 요청합니다...');
-    const result = await invoke('start_extraction', { url, password, customFilename });
+    const result = await invoke('start_extraction', { url, password, custom_filename: customFilename });
     logTo(terminalConsole, 'success', `백엔드 작업 시작: ${result}`);
   } catch (err) {
     logTo(terminalConsole, 'error', `백엔드 작업 오류: ${err}`);
