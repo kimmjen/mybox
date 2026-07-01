@@ -83,7 +83,19 @@
         </div>
       </div>
 
-      <button id="extract-button" class="btn-primary">PDF 문서 추출 시작</button>
+      <button id="add-queue-btn" class="btn-primary">+ 큐에 추가</button>
+
+      <!-- Queue section -->
+      <div id="queue-section" class="queue-section">
+        <div class="queue-header">
+          <span class="queue-title">추출 목록 <span id="queue-count" class="queue-count-badge">0</span></span>
+          <button id="queue-clear-btn" class="btn-text-danger">전체 삭제</button>
+        </div>
+        <div id="queue-list" class="queue-list"></div>
+        <button id="start-queue-btn" class="btn-primary btn-green" style="margin-top:0.75rem;">
+          추출 시작 (<span id="start-queue-count">0</span>개)
+        </button>
+      </div>
 
       <!-- Progress Section -->
       <div id="progress-area" class="progress-container">
