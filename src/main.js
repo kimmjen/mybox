@@ -1,11 +1,14 @@
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
+const { open: openDialog } = window.__TAURI_PLUGIN_DIALOG__;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 
 const linkInput        = document.getElementById('link-input');
 const passwordInput    = document.getElementById('password-input');
 const filenameInput    = document.getElementById('filename-input');
+const folderDisplay    = document.getElementById('folder-display');
+const folderPickBtn    = document.getElementById('folder-pick-btn');
 const passwordToggle   = document.getElementById('password-toggle');
 const extractButton    = document.getElementById('extract-button');
 const progressArea     = document.getElementById('progress-area');
@@ -123,9 +126,9 @@ async function checkDeps() {
     if (missing.length === 0) {
       closeModal();
       if (pendingExtraction) {
-        const { url, password, customFilename } = pendingExtraction;
+        const { url, password, customFilename, outputFolder } = pendingExtraction;
         pendingExtraction = null;
-        runExtraction(url, password, customFilename);
+        runExtraction(url, password, customFilename, outputFolder);
       }
       return;
     }
@@ -206,10 +209,11 @@ function setInputsDisabled(disabled) {
   linkInput.disabled     = disabled;
   passwordInput.disabled = disabled;
   filenameInput.disabled = disabled;
+  folderPickBtn.disabled = disabled;
   extractButton.disabled = disabled;
 }
 
-async function runExtraction(url, password, customFilename = '') {
+async function runExtraction(url, password, customFilename = '', outputFolder = '') {
   setInputsDisabled(true);
   progressArea.style.display = 'block';
   resetProgress();
@@ -256,7 +260,7 @@ async function runExtraction(url, password, customFilename = '') {
 
   try {
     logTo(terminalConsole, 'info', 'Rust 백엔드로 추출 작업을 요청합니다...');
-    const result = await invoke('start_extraction', { url, password, customFilename });
+    const result = await invoke('start_extraction', { url, password, customFilename, outputFolder });
     logTo(terminalConsole, 'success', `백엔드 작업 시작: ${result}`);
   } catch (err) {
     logTo(terminalConsole, 'error', `백엔드 작업 오류: ${err}`);
@@ -284,6 +288,18 @@ openPdfButton.addEventListener('click', async () => {
   }
 });
 
+folderPickBtn.addEventListener('click', async () => {
+  try {
+    const selected = await openDialog({ directory: true, multiple: false, title: '출력 폴더 선택' });
+    if (selected) {
+      await invoke('save_output_folder', { path: selected });
+      folderDisplay.value = selected;
+    }
+  } catch (err) {
+    console.error('폴더 선택 실패:', err);
+  }
+});
+
 extractButton.addEventListener('click', async () => {
   const url      = linkInput.value.trim();
   const password = passwordInput.value.trim();
@@ -291,7 +307,8 @@ extractButton.addEventListener('click', async () => {
   if (!password) { alert('비밀번호를 입력해 주세요!');  return; }
 
   const customFilename = filenameInput.value.trim().replace(/\.pdf$/i, '');
-  pendingExtraction = { url, password, customFilename };
+  const outputFolder   = folderDisplay.value.trim();
+  pendingExtraction = { url, password, customFilename, outputFolder };
   depModal.classList.add('visible');
   await checkDeps();
 });
@@ -311,12 +328,22 @@ depInstallBtn.addEventListener('click', startDepInstall);
 depProceedBtn.addEventListener('click', () => {
   closeModal();
   if (pendingExtraction) {
-    const { url, password, customFilename } = pendingExtraction;
+    const { url, password, customFilename, outputFolder } = pendingExtraction;
     pendingExtraction = null;
-    runExtraction(url, password, customFilename);
+    runExtraction(url, password, customFilename, outputFolder);
   }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
-refreshStatusBar();
+async function init() {
+  refreshStatusBar();
+  try {
+    const folder = await invoke('get_output_folder');
+    folderDisplay.value = folder;
+  } catch {
+    folderDisplay.value = '';
+  }
+}
+
+init();

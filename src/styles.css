@@ -248,6 +248,26 @@ button:disabled {
   background: rgba(255, 255, 255, 0.05);
 }
 
+/* ── Folder pick button ──────────────────────────────────────────────────── */
+
+.btn-folder {
+  flex-shrink: 0;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-folder:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+
 /* ── Dependency Status Bar ───────────────────────────────────────────────── */
 
 .dep-status-bar {
