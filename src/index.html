@@ -114,6 +114,19 @@
           <div class="terminal-line info">대기 중...</div>
         </div>
       </div>
+
+      <!-- History section -->
+      <div id="history-section" class="history-section">
+        <button id="history-toggle-btn" class="history-toggle">
+          <span>추출 기록</span>
+          <span id="history-count" class="queue-count-badge">0</span>
+          <span id="history-chevron" class="history-chevron">▾</span>
+        </button>
+        <div id="history-body" class="history-body" style="display:none;">
+          <div id="history-list" class="history-list"></div>
+          <button id="history-clear-btn" class="btn-text-danger" style="margin-top:0.5rem;">기록 전체 삭제</button>
+        </div>
+      </div>
     </main>
 
     <!-- Dependency Modal -->

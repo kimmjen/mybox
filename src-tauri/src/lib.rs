@@ -217,6 +217,52 @@ fn save_output_folder(path: String) -> Result<(), String> {
     Ok(())
 }
 
+// ── History ───────────────────────────────────────────────────────────────────
+
+fn history_path() -> Option<PathBuf> {
+    let home = env::var("HOME").ok()?;
+    Some(PathBuf::from(home).join(MYBOX_DIR).join("history.json"))
+}
+
+#[tauri::command]
+fn save_history_entry(label: String, pdf_path: String, status: String, timestamp: String) {
+    let Some(path) = history_path() else { return };
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let mut entries: Vec<serde_json::Value> = std::fs::read_to_string(&path)
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default();
+
+    entries.insert(0, serde_json::json!({
+        "timestamp": timestamp,
+        "label":     label,
+        "pdfPath":   pdf_path,
+        "status":    status,
+    }));
+    entries.truncate(50);
+
+    if let Ok(s) = serde_json::to_string_pretty(&entries) {
+        let _ = std::fs::write(path, s);
+    }
+}
+
+#[tauri::command]
+fn get_history() -> Vec<serde_json::Value> {
+    history_path()
+        .and_then(|p| std::fs::read_to_string(p).ok())
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
+
+#[tauri::command]
+fn clear_history() {
+    if let Some(path) = history_path() {
+        let _ = std::fs::write(path, "[]");
+    }
+}
+
 fn sanitize_filename(name: &str) -> String {
     let s: String = name
         .chars()
@@ -994,6 +1040,9 @@ pub fn run() {
             install_dependencies,
             get_output_folder,
             save_output_folder,
+            save_history_entry,
+            get_history,
+            clear_history,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

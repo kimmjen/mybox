@@ -10,6 +10,12 @@ const filenameInput      = document.getElementById('filename-input');
 const folderDisplay      = document.getElementById('folder-display');
 const folderPickBtn      = document.getElementById('folder-pick-btn');
 const passwordToggle     = document.getElementById('password-toggle');
+const historyToggleBtn   = document.getElementById('history-toggle-btn');
+const historyBody        = document.getElementById('history-body');
+const historyChevron     = document.getElementById('history-chevron');
+const historyCountEl     = document.getElementById('history-count');
+const historyListEl      = document.getElementById('history-list');
+const historyClearBtn    = document.getElementById('history-clear-btn');
 const addQueueBtn        = document.getElementById('add-queue-btn');
 const queueSection       = document.getElementById('queue-section');
 const queueListEl        = document.getElementById('queue-list');
@@ -74,6 +80,65 @@ async function refreshStatusBar() {
     ['brew','nvm','node','playwright','pyenv','python','pillow'].forEach(n => setDot(n, 'missing'));
   }
 }
+
+// ── History ───────────────────────────────────────────────────────────────────
+
+async function loadHistory() {
+  try {
+    const entries = await invoke('get_history');
+    historyCountEl.textContent = entries.length;
+    historyListEl.innerHTML    = '';
+
+    if (entries.length === 0) {
+      historyListEl.innerHTML = '<div class="history-empty">추출 기록이 없습니다.</div>';
+      return;
+    }
+
+    entries.forEach(entry => {
+      const isDone = entry.status === 'done';
+      const el = document.createElement('div');
+      el.className = `history-item history-item--${entry.status}`;
+      el.innerHTML = `
+        <span class="history-item-icon">${isDone ? '✓' : '✗'}</span>
+        <div class="history-item-info">
+          <div class="history-item-label" title="${entry.pdfPath || ''}">${entry.label}</div>
+          <div class="history-item-time">${entry.timestamp}</div>
+        </div>
+        ${isDone ? `<button class="history-item-open" data-path="${entry.pdfPath}">열기</button>` : ''}
+      `;
+      historyListEl.appendChild(el);
+    });
+
+    historyListEl.querySelectorAll('.history-item-open').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try { await invoke('open_file', { path: btn.dataset.path }); } catch {}
+      });
+    });
+  } catch {}
+}
+
+async function recordHistory(label, pdfPath, status) {
+  const now = new Date();
+  const timestamp = now.toLocaleString('ko-KR', { hour12: false });
+  try {
+    await invoke('save_history_entry', { label, pdfPath: pdfPath || '', status, timestamp });
+    await loadHistory();
+  } catch {}
+}
+
+historyToggleBtn.addEventListener('click', () => {
+  const isOpen = historyBody.style.display !== 'none';
+  historyBody.style.display = isOpen ? 'none' : 'block';
+  historyChevron.classList.toggle('open', !isOpen);
+  if (!isOpen) loadHistory();
+});
+
+historyClearBtn.addEventListener('click', async () => {
+  try {
+    await invoke('clear_history');
+    await loadHistory();
+  } catch {}
+});
 
 // ── Queue ─────────────────────────────────────────────────────────────────────
 
@@ -321,12 +386,14 @@ function runSingleExtraction(item) {
         progressStatus.textContent  = 'PDF 파일이 성공적으로 저장되었습니다.';
         openPdfButton.style.display = 'block';
         if (unlistenProgress) { unlistenProgress(); unlistenProgress = null; }
+        recordHistory(item.customFilename || item.url.slice(-40), message, 'done');
         resolve('done');
       } else if (status === 'error') {
         logTo(terminalConsole, 'error', message);
         progressTitle.textContent  = '작업 실패';
         progressStatus.textContent = `오류: ${message}`;
         if (unlistenProgress) { unlistenProgress(); unlistenProgress = null; }
+        recordHistory(item.customFilename || item.url.slice(-40), '', 'error');
         resolve('error');
       }
     });
@@ -439,6 +506,10 @@ async function init() {
   } catch {
     folderDisplay.value = '';
   }
+  try {
+    const entries = await invoke('get_history');
+    historyCountEl.textContent = entries.length;
+  } catch {}
 }
 
 init();

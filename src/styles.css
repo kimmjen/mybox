@@ -358,6 +358,97 @@ button:disabled {
 }
 .queue-item-remove:hover { color: #f87171; }
 
+/* ── History section ─────────────────────────────────────────────────────── */
+
+.history-section {
+  margin-top: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.history-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: none;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+.history-toggle:hover { background: rgba(255, 255, 255, 0.04); }
+
+.history-chevron {
+  margin-left: auto;
+  font-size: 0.9rem;
+  transition: transform 0.2s;
+}
+.history-chevron.open { transform: rotate(180deg); }
+
+.history-body {
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.history-empty {
+  color: #475569;
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.history-item-icon { flex-shrink: 0; font-size: 0.85rem; }
+.history-item--done  .history-item-icon { color: #34d399; }
+.history-item--error .history-item-icon { color: #f87171; }
+
+.history-item-info { flex: 1; overflow: hidden; }
+.history-item-label {
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.history-item-time { color: #475569; font-size: 0.72rem; margin-top: 1px; }
+
+.history-item-open {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: 6px;
+  color: #34d399;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.history-item-open:hover { background: rgba(52, 211, 153, 0.22); }
+
 /* ── Folder pick button ──────────────────────────────────────────────────── */
 
 .btn-folder {
